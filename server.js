@@ -7,12 +7,13 @@ dotenv.config();
 let pool=null;
 try {
      pool = mysql.createPool({
-        host: process.env.HOST,
+        // host: process.env.HOST,
         port: process.env.DB_PORT,
         user: process.env.USER,
         password: process.env.PASSWORD,
         database: process.env.DATABASE
-    }).promise();
+     }).promise();
+    console.log("database connected");
 }
 catch (err) {
     console.log(err);
@@ -26,6 +27,10 @@ app.listen(process.env.PORT, () => {
 
 app.use(express.json());
 app.use(cors());
+
+app.get('/', (req, res) => {
+    res.send('welcome ems backend');
+});
 
 app.get('/create', (req, res) => {
     try {
@@ -47,20 +52,35 @@ app.get('/get', async (req, res) => {
     }
 });
 
-app.post('/upload', async(req, res) => {
+
+app.post('/upload', async (req, res) => {
     try {
-        const id = req.body.id;
-        const name = req.body.name;
-        const dept = req.body.dept;
-        const salary = req.body.salary;
-        const result = await pool.query(`insert into employee values(?,?,?,?)`, [id, name, dept, salary]);
-        res.send('ok');
-    }
-    catch (err) {
+        const { id, name, gender, dob, dept, designation, salary } = req.body;
+
+        
+       
+        if (name.length > 30) {
+            return res.json({res:"Name must be max 30 characters!"});
+        }
+        const parsedSalary = parseInt(salary);
+        if (parsedSalary > 99999999) {
+            return res.json({res:"Salary must be max 8 digits"});
+        }
+        const parsedId = parseInt(id);
+        
+        const result = await pool.query(
+            'INSERT INTO employee (emp_id, emp_name, gender, dob, department, desigantion, salary) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [parsedId, name, gender, dob, dept, designation, parsedSalary]
+        );
+
+        console.log(result);
+        res.json({res:'ok'});
+    } catch (err) {
         console.log(err.sqlMessage);
-        res.json({ error: err.sqlMessage });
+        res.status(500).json({ res: err.sqlMessage });
     }
 });
+
 
 app.delete('/delete', async (req, res) => {
     try {
@@ -70,7 +90,7 @@ app.delete('/delete', async (req, res) => {
         res.send('ok');
     }
     catch (err) {
-        res.json({ error: err.sqlMessage });
+        res.json({ res: err.sqlMessage });
     }
 });
 
