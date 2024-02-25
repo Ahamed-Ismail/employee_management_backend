@@ -69,8 +69,8 @@ app.post('/upload', async (req, res) => {
         const parsedId = parseInt(id);
         
         const result = await pool.query(
-            'INSERT INTO employee (emp_id, emp_name, gender, dob, department, desigantion, salary) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [parsedId, name, gender, dob, dept, designation, parsedSalary]
+            'INSERT INTO employee (emp_id, emp_name, gender, dob, department, desigantion, salary, phoneno, age) VALUES (?, ?, ?, ?, ?, ?, ?,?,?)',
+            [parsedId, name, gender, dob, dept, designation, parsedSalary, null,null]
         );
 
         console.log(result);
@@ -81,6 +81,35 @@ app.post('/upload', async (req, res) => {
     }
 });
 
+app.put('/update', async (req, res) => {
+    try {
+        const { id, name, gender, dob, dept, designation, salary , phoneno, age} = req.body;
+
+        
+       
+        
+        const parsedSalary = parseInt(salary);
+        
+        const parsedId = parseInt(id);
+        const parsedAge = parseInt(age);
+        console.log(id, name, gender, dob, dept, designation, salary , phoneno, age)
+        
+        const result = await pool.query(
+            'update  employee set phonenchato=(?) , age=(?) where emp_id=(?)',
+            [phoneno, parsedAge, parsedId]
+        );
+        // const del= await pool.query(
+        //     'delete from  employee  where emp_id=(?) and phoneno=NULL',
+        //     [ parsedId]
+        // );
+
+        console.log(result);
+        res.json({res:'ok'});
+    } catch (err) {
+        console.log(err.sqlMessage);
+        res.status(500).json({ res: err.sqlMessage });
+    }
+});
 
 app.delete('/delete', async (req, res) => {
     try {
